@@ -36,15 +36,18 @@ model User {
   name          String
   password      String?   // bcrypt hashed, nullable for OIDC users
   role          Role      @default(EMPLOYEE)
-  
+
   // TOTP 2FA
   totpSecret    String?   // Encrypted TOTP secret
   totpEnabled   Boolean   @default(false)
-  
+
+  // Notifications
+  emailNotificationsEnabled Boolean @default(true)
+
   // Relations
   orders        Order[]
   cartItems     CartItem[]
-  
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

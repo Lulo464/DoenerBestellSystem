@@ -117,6 +117,11 @@ export function Header() {
                       🔐
                     </Button>
                   </Link>
+                  <Link href="/settings">
+                    <Button variant="ghost" size="sm">
+                      ⚙️
+                    </Button>
+                  </Link>
                   {mounted && (
                     <Button
                       variant="outline"

@@ -113,7 +113,9 @@ function formatEur(amount: number): string {
 
 // ==================== Einzelne Mails ====================
 
-export async function sendOrderConfirmation(data: OrderMailData) {
+export async function sendOrderConfirmation(data: OrderMailData, shouldSend: boolean = true) {
+  if (!shouldSend) return
+
   const transporter = createTransporter()
   if (!transporter) return
 
@@ -150,8 +152,11 @@ export async function sendOrderConfirmation(data: OrderMailData) {
 
 export async function sendStatusUpdate(
   data: OrderMailData,
-  status: OrderStatus
+  status: OrderStatus,
+  shouldSend: boolean = true
 ) {
+  if (!shouldSend) return
+
   const transporter = createTransporter()
   if (!transporter) return
 
@@ -206,7 +211,9 @@ export async function sendStatusUpdate(
   })
 }
 
-export async function sendPaymentDue(data: OrderMailData) {
+export async function sendPaymentDue(data: OrderMailData, shouldSend: boolean = true) {
+  if (!shouldSend) return
+
   const transporter = createTransporter()
   if (!transporter) return
 
@@ -266,7 +273,9 @@ export async function sendPaymentDue(data: OrderMailData) {
   })
 }
 
-export async function sendOrderCompleted(data: OrderMailData) {
+export async function sendOrderCompleted(data: OrderMailData, shouldSend: boolean = true) {
+  if (!shouldSend) return
+
   const transporter = createTransporter()
   if (!transporter) return
 

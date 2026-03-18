@@ -78,7 +78,7 @@ export async function createOrder(params: {
   revalidatePath('/orders')
   revalidatePath('/admin/orders')
 
-  // Bestätigungsmail
+  // Bestätigungsmail (nur wenn Benachrichtigungen aktiviert)
   sendOrderConfirmation({
     to: user.email,
     customerName: user.name,
@@ -90,7 +90,7 @@ export async function createOrder(params: {
     })),
     totalAmount,
     notes: notes ?? null,
-  }).catch((err) => console.error('Mail-Fehler (orderConfirmation):', err))
+  }, user.emailNotificationsEnabled).catch((err) => console.error('Mail-Fehler (orderConfirmation):', err))
 
   return {
     success: true,
@@ -270,7 +270,7 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     include: {
-      user: { select: { email: true, name: true } },
+      user: { select: { email: true, name: true, emailNotificationsEnabled: true } },
       items: {
         include: {
           product: { select: { name: true } },
@@ -315,11 +315,11 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
     }
 
     if (status === OrderStatus.COMPLETED) {
-      sendOrderCompleted(mailData).catch((err) =>
+      sendOrderCompleted(mailData, order.user.emailNotificationsEnabled).catch((err) =>
         console.error('Mail-Fehler (completed):', err)
       )
     } else {
-      sendStatusUpdate(mailData, status).catch((err) =>
+      sendStatusUpdate(mailData, status, order.user.emailNotificationsEnabled).catch((err) =>
         console.error('Mail-Fehler (statusUpdate):', err)
       )
     }
@@ -347,7 +347,7 @@ export async function setPaymentDue(orderId: string, params: {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     include: {
-      user: { select: { email: true, name: true } },
+      user: { select: { email: true, name: true, emailNotificationsEnabled: true } },
       items: {
         include: {
           product: { select: { name: true } },
@@ -382,7 +382,7 @@ export async function setPaymentDue(orderId: string, params: {
   revalidatePath('/admin/orders')
   revalidatePath(`/orders/${orderId}`)
 
-  // Zahlungsaufforderungsmail (nur wenn User noch existiert)
+  // Zahlungsaufforderungsmail (nur wenn User noch existiert und Benachrichtigungen aktiviert)
   if (order.user) {
     sendPaymentDue({
       to: order.user.email,
@@ -402,7 +402,7 @@ export async function setPaymentDue(orderId: string, params: {
         bic: paymentAccount.bic,
         paypalMeLink: paymentAccount.paypalMeLink,
       },
-    }).catch((err) => console.error('Mail-Fehler (paymentDue):', err))
+    }, order.user.emailNotificationsEnabled).catch((err) => console.error('Mail-Fehler (paymentDue):', err))
   }
 
   return { success: true, message: 'Zahlung ausstehend gesetzt' }
