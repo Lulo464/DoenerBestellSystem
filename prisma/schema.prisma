@@ -1,0 +1,285 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== ENUMS ====================
+
+enum Role {
+  EMPLOYEE    // Mitarbeiter - kann bestellen
+  ADMIN       // Admin - sieht alle Bestellungen
+  HEAD_ADMIN  // Hauptadmin - darf Preise ändern
+  SUPER_ADMIN // Superadmin - darf alles
+}
+
+enum OrderStatus {
+  PENDING          // Ausstehend - Bestellung aufgegeben
+  CONFIRMED        // Bestätigt - Admin bestätigt
+  ON_THE_WAY       // Unterwegs - Lieferung gestartet
+  DELIVERED        // Abgeliefert - Optional
+  PAYMENT_PENDING  // Zahlung ausstehend - mit genauem Betrag
+  COMPLETED        // Abgeschlossen - Bezahlt
+  CANCELLED        // Storniert
+  EXITED           // Ausgetreten - Benutzer wurde gelöscht
+}
+
+// ==================== MODELS ====================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  password      String?   // bcrypt hashed, nullable for OIDC users
+  role          Role      @default(EMPLOYEE)
+  
+  // TOTP 2FA
+  totpSecret    String?   // Encrypted TOTP secret
+  totpEnabled   Boolean   @default(false)
+  
+  // Relations
+  orders        Order[]
+  cartItems     CartItem[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("users")
+}
+
+model PaymentAccount {
+  id            String    @id @default(cuid())
+  name          String    // z.B. "Döner-Kasse", "Hauptkonto"
+  iban          String
+  accountHolder String
+  bic           String?
+  
+  // PayPal
+  paypalEmail   String?
+  paypalMeLink  String?   // z.B. "https://paypal.me/doenerteam"
+  
+  isDefault     Boolean   @default(false)
+  isActive      Boolean   @default(true)
+  
+  // Relations
+  orders        Order[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("payment_accounts")
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  imageUrl    String?
+  sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
+  
+  // Relations
+  products    Product[]
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("categories")
+}
+
+model Product {
+  id              String    @id @default(cuid())
+  name            String
+  description     String?
+  basePrice       Decimal   @db.Decimal(10, 2)
+  imageUrl        String?
+  isActive        Boolean   @default(true)
+  isConfigurable  Boolean   @default(false)
+  sortOrder       Int       @default(0)
+  
+  // Relations
+  categoryId      String
+  category        Category  @relation(fields: [categoryId], references: [id])
+  optionGroups    OptionGroup[]
+  orderItems      OrderItem[]
+  cartItems       CartItem[]
+  boxItems        BoxItem[]   // NEU
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("products")
+}
+
+
+model OptionGroup {
+  id            String    @id @default(cuid())
+  name          String    // z.B. "Fleisch", "Soße", "Extras"
+  description   String?
+  isRequired    Boolean   @default(false) // Pflichtauswahl
+  isMultiple    Boolean   @default(false) // Mehrfachauswahl erlaubt
+  minSelections Int       @default(0)
+  maxSelections Int?      // null = unbegrenzt
+  sortOrder     Int       @default(0)
+  
+  // Relations
+  productId     String
+  product       Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  options       Option[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("option_groups")
+}
+
+model Option {
+  id              String    @id @default(cuid())
+  name            String    // z.B. "Hähnchen", "Scharf"
+  priceModifier   Decimal   @db.Decimal(10, 2) @default(0) // Aufpreis
+  isDefault       Boolean   @default(false)
+  isActive        Boolean   @default(true)
+  sortOrder       Int       @default(0)
+  
+  // Relations
+  optionGroupId   String
+  optionGroup     OptionGroup @relation(fields: [optionGroupId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("options")
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  orderNumber     String      @unique // z.B. "ORD-2024-001234"
+  status          OrderStatus @default(PENDING)
+  totalAmount     Decimal     @db.Decimal(10, 2)  // Ungefährer Preis beim Bestellen
+  finalAmount     Decimal?    @db.Decimal(10, 2)  // Genauer Betrag (vom Admin gesetzt)
+  notes           String?
+
+  // Relations
+  userId          String?
+  user            User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  paymentAccountId String?
+  paymentAccount  PaymentAccount? @relation(fields: [paymentAccountId], references: [id])
+  items           OrderItem[]
+  
+  // Timestamps
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  completedAt     DateTime?
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+model OrderItem {
+  id              String    @id @default(cuid())
+  quantity        Int       @default(1)
+  unitPrice       Decimal   @db.Decimal(10, 2)
+  totalPrice      Decimal   @db.Decimal(10, 2)
+  notes           String?
+  
+  selectedOptions Json?
+  
+  isCustomRequest Boolean   @default(false)
+  customRequestText String?
+  
+  // Relations
+  orderId         String
+  order           Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId       String?
+  product         Product?  @relation(fields: [productId], references: [id])
+  boxId           String?   // NEU
+  box             Box?      @relation(fields: [boxId], references: [id])  // NEU
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("order_items")
+}
+
+model CartItem {
+  id              String    @id @default(cuid())
+  quantity        Int       @default(1)
+  unitPrice       Decimal   @db.Decimal(10, 2)
+  
+  selectedOptions Json?
+  
+  // Für Boxen: Konfigurationen der einzelnen Produkte
+  boxItemConfigurations Json?  // [{productId, selectedOptions}]
+  
+  isCustomRequest Boolean   @default(false)
+  customRequestText String?
+  
+  // Relations
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId       String?
+  product         Product?  @relation(fields: [productId], references: [id])
+  boxId           String?
+  box             Box?      @relation(fields: [boxId], references: [id])
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("cart_items")
+}
+
+model SystemSettings {
+  id              String    @id @default(cuid())
+  key             String    @unique
+  value           String
+  description     String?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("system_settings")
+}
+
+model Box {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  totalPrice  Decimal   @db.Decimal(10, 2)
+  isActive    Boolean   @default(true)
+  sortOrder   Int       @default(0)
+  
+  // Relations
+  items       BoxItem[]
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("boxes")
+}
+
+model BoxItem {
+  id              String  @id @default(cuid())
+  quantity        Int     @default(1)
+  
+  // Für konfigurierbare Produkte in der Box
+  selectedOptions Json?
+  
+  // Relations
+  boxId           String
+  box             Box     @relation(fields: [boxId], references: [id], onDelete: Cascade)
+  productId       String
+  product         Product @relation(fields: [productId], references: [id])
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("box_items")
+}

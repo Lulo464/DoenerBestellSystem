@@ -11,9 +11,11 @@ FROM base AS deps
 WORKDIR /app
 
 COPY package.json ./
+COPY package-lock.json* ./
 COPY prisma ./prisma/
 
-RUN npm install
+# Generiere package-lock.json wenn nicht vorhanden, dann installiere
+RUN npm ci --prefer-offline --no-audit || npm install
 
 # Development image
 FROM base AS dev
@@ -27,5 +29,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 EXPOSE 3000
 
-# Verwende db push statt migrate deploy (erstellt Tabellen direkt aus Schema)
-CMD ["sh", "-c", "npx prisma generate --schema=/app/prisma/schema.prisma && npx prisma db push --schema=/app/prisma/schema.prisma --accept-data-loss && (npx prisma db seed || echo 'Seed skipped') && npm run dev"]
+# Copy entrypoint script
+COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh
+
+# Use entrypoint script to show configuration and start app
+ENTRYPOINT ["/app/docker-entrypoint.sh"]

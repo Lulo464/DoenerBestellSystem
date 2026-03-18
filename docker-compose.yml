@@ -1,0 +1,59 @@
+
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: doener-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: foodorder
+      POSTGRES_PASSWORD: foodorder123
+      POSTGRES_DB: foodorder
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U foodorder"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    container_name: doener-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://foodorder:foodorder123@db:5432/foodorder
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_SECURE=${SMTP_SECURE}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - SMTP_FROM=${SMTP_FROM}
+      - NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME:-Bestellsystem}
+      - APP_NAME=${APP_NAME:-Bestellsystem}
+      - OIDC_ISSUER=${OIDC_ISSUER}
+      - OIDC_CLIENT_ID=${OIDC_CLIENT_ID}
+      - OIDC_CLIENT_SECRET=${OIDC_CLIENT_SECRET}
+      - OIDC_PROVIDER_NAME=${OIDC_PROVIDER_NAME}
+      - OIDC_SUPERADMIN_EMAIL=${OIDC_SUPERADMIN_EMAIL}
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - app_node_modules:/app/node_modules
+      - app_next:/app/.next
+
+volumes:
+  postgres_data:
+  app_node_modules:
+  app_next:
