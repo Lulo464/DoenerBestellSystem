@@ -19,8 +19,7 @@ export async function POST(request: Request) {
 
     // Permission check (admin only)
     const userRole = (session.user as any).role as Role
-    if (!hasPermission(userRole, 'change_prices')) {
-      // Using change_prices as admin permission
+    if (!hasPermission(userRole, 'manage_products')) {
       return Response.json({ error: 'Keine Berechtigung' }, { status: 403 })
     }
 
