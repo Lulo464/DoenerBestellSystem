@@ -215,7 +215,15 @@ export async function getOrder(orderId: string) {
             select: { id: true, name: true, imageUrl: true },
           },
           box: {
-            select: { id: true, name: true },
+            include: {
+              items: {
+                include: {
+                  product: {
+                    select: { id: true, name: true },
+                  },
+                },
+              },
+            },
           },
         },
       },

@@ -59,11 +59,8 @@ export function BoxCard({ box, productDetails, onAddToCart }: BoxCardProps) {
     : false
 
   const handleClick = () => {
-    if (hasConfigurableProducts && productDetails) {
-      setShowConfigurator(true)
-    } else {
-      handleAddToCart([])
-    }
+    // Boxen sind nicht konfigurierbar - immer direkt hinzufügen
+    handleAddToCart([])
   }
 
   const handleAddToCart = async (configurations: any[]) => {
@@ -150,7 +147,7 @@ export function BoxCard({ box, productDetails, onAddToCart }: BoxCardProps) {
             onClick={handleClick}
             isLoading={isLoading}
           >
-            {hasConfigurableProducts ? 'Konfigurieren' : 'In den Warenkorb'}
+            In den Warenkorb
           </Button>
         </CardContent>
       </Card>

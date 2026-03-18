@@ -181,6 +181,18 @@ export default function OrderDetailPage() {
                   {item.isCustomRequest && item.customRequestText && (
                     <p className="text-sm text-gray-600 mt-1">{item.customRequestText}</p>
                   )}
+                  {/* Box Inhalt anzeigen */}
+                  {(item as any).box && (item as any).box.items && (
+                    <div className="text-xs text-gray-500 mt-1">
+                      <span className="font-medium">Inhalt: </span>
+                      {(item as any).box.items.map((boxItem: any, i: number) => (
+                        <span key={i}>
+                          {i > 0 && ', '}
+                          {boxItem.quantity}× {boxItem.product?.name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                   {item.selectedOptions &&
                     (item.selectedOptions as SelectedOption[]).length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-1">
@@ -262,21 +274,21 @@ export default function OrderDetailPage() {
                 <CardContent>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Konto:</span>
-                      <span className="font-medium">{order.paymentAccount.name}</span>
+                      <span className="text-gray-600 dark:text-gray-400">Konto:</span>
+                      <span className="font-medium dark:text-white">{order.paymentAccount.name}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Inhaber:</span>
-                      <span>{order.paymentAccount.accountHolder}</span>
+                      <span className="text-gray-600 dark:text-gray-400">Inhaber:</span>
+                      <span className="dark:text-gray-300">{order.paymentAccount.accountHolder}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">IBAN:</span>
-                      <span className="font-mono text-xs">{order.paymentAccount.iban}</span>
+                      <span className="text-gray-600 dark:text-gray-400">IBAN:</span>
+                      <span className="font-mono text-xs dark:text-gray-300">{order.paymentAccount.iban}</span>
                     </div>
                     {order.paymentAccount.bic && (
                       <div className="flex justify-between">
-                        <span className="text-gray-600">BIC:</span>
-                        <span className="font-mono">{order.paymentAccount.bic}</span>
+                        <span className="text-gray-600 dark:text-gray-400">BIC:</span>
+                        <span className="font-mono dark:text-gray-300">{order.paymentAccount.bic}</span>
                       </div>
                     )}
                   </div>
