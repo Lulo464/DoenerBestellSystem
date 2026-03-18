@@ -595,7 +595,7 @@ export default function EditProductPage() {
                     {group.options.map((option) => (
                       <div
                         key={option.id}
-                        className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                        className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded text-gray-900 dark:text-white"
                       >
                         <div className="flex items-center gap-2">
                           <span>{option.name}</span>

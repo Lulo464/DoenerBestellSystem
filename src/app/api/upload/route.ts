@@ -1,6 +1,7 @@
 import { writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
 import { getServerSession } from 'next-auth/next'
+import { authOptions } from '@/lib/auth-options'
 import { hasPermission } from '@/lib/permissions'
 import { Role } from '@prisma/client'
 import { randomBytes } from 'crypto'
@@ -12,7 +13,7 @@ const MAX_SIZE = 5 * 1024 * 1024 // 5MB
 export async function POST(request: Request) {
   try {
     // Auth check
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     if (!session?.user) {
       return Response.json({ error: 'Nicht authentifiziert' }, { status: 401 })
     }
