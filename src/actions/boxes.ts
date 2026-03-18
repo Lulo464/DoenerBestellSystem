@@ -380,7 +380,7 @@ export async function deleteBox(boxId: string) {
 }
 
 export async function addBoxToCart(
-  boxId: string, 
+  boxId: string,
   quantity: number = 1,
   configurations?: ProductConfig[]
 ) {
@@ -393,6 +393,9 @@ export async function addBoxToCart(
 
     const box = await prisma.box.findUnique({
       where: { id: boxId },
+      include: {
+        items: true,
+      },
     })
 
     if (!box || !box.isActive) {
@@ -401,7 +404,32 @@ export async function addBoxToCart(
 
     // Berechne eventuelle Aufpreise durch Konfigurationen
     let totalExtraPrice = 0
-    if (configurations && configurations.length > 0) {
+    let finalConfigurations: ProductConfig[] = configurations || []
+
+    // Wenn keine Konfigurationen vom Benutzer gegeben, nimm die Admin-Voreinstellungen
+    if (!configurations || configurations.length === 0) {
+      const adminConfigs: ProductConfig[] = []
+
+      for (const boxItem of box.items) {
+        const adminPresets = (boxItem.selectedOptions as SelectedOption[] | null) || []
+
+        if (adminPresets.length > 0) {
+          adminConfigs.push({
+            productId: boxItem.productId,
+            productName: '', // wird nicht benötigt, aber für Typ erforderlich
+            selectedOptions: adminPresets,
+          })
+
+          // Berechne Aufpreis für Admin-Presets
+          adminPresets.forEach((opt) => {
+            totalExtraPrice += opt.priceModifier
+          })
+        }
+      }
+
+      finalConfigurations = adminConfigs
+    } else {
+      // Benutzer-Konfigurationen: Berechne Aufpreise
       configurations.forEach((config) => {
         config.selectedOptions.forEach((opt) => {
           totalExtraPrice += opt.priceModifier
@@ -418,8 +446,8 @@ export async function addBoxToCart(
         boxId,
         quantity,
         unitPrice: new Decimal(finalPrice),
-        boxItemConfigurations: configurations && configurations.length > 0 
-          ? configurations 
+        boxItemConfigurations: finalConfigurations.length > 0
+          ? finalConfigurations
           : undefined,
       },
     })

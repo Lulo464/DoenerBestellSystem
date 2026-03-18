@@ -67,16 +67,16 @@ export function CartItem({ item, onUpdate }: CartItemProps) {
       : item.product?.name || 'Unbekanntes Produkt'
 
   return (
-    <div className="flex gap-4 py-4 border-b border-gray-100">
+    <div className="flex gap-4 py-4 border-b border-gray-100 dark:border-gray-700">
       {/* Product Icon */}
-      <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-2xl shrink-0">
+      <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center text-2xl shrink-0">
         {isBox ? '📦' : isCustomRequest ? '📝' : '🍽️'}
       </div>
 
       {/* Details */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <h4 className="font-medium text-gray-900">{displayName}</h4>
+          <h4 className="font-medium text-gray-900 dark:text-white">{displayName}</h4>
           {isBox && (
             <Badge variant="secondary" className="text-xs">Box</Badge>
           )}
@@ -84,7 +84,7 @@ export function CartItem({ item, onUpdate }: CartItemProps) {
 
         {/* Custom Request Text */}
         {isCustomRequest && item.customRequestText && (
-          <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
             {item.customRequestText}
           </p>
         )}
@@ -94,11 +94,11 @@ export function CartItem({ item, onUpdate }: CartItemProps) {
             {selectedOptions.map((opt, i) => (
               <span
                 key={i}
-                className="inline-flex items-center px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded"
+                className="inline-flex items-center px-2 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded"
               >
                 {opt.optionName}
                 {opt.priceModifier > 0 && (
-                  <span className="ml-1 text-gray-400">
+                  <span className="ml-1 text-gray-400 dark:text-gray-500">
                     +{formatCurrency(opt.priceModifier)}
                   </span>
                 )}
@@ -111,7 +111,7 @@ export function CartItem({ item, onUpdate }: CartItemProps) {
         {isBox && (item as any).box && (
           <div className="mt-2 space-y-2">
             {/* Box Items */}
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-gray-500 dark:text-gray-400">
               <span className="font-medium">Inhalt: </span>
               {(item as any).box.items.map((boxItem: any, i: number) => (
                 <span key={i}>
@@ -126,16 +126,16 @@ export function CartItem({ item, onUpdate }: CartItemProps) {
               <div className="space-y-1">
                 {boxConfigurations.map((config, i) => (
                   <div key={i} className="text-xs">
-                    <span className="font-medium text-gray-600">{config.productName}:</span>
+                    <span className="font-medium text-gray-600 dark:text-gray-400">{config.productName}:</span>
                     <div className="flex flex-wrap gap-1 mt-0.5">
                       {config.selectedOptions.map((opt, j) => (
                         <span
                           key={j}
-                          className="inline-flex items-center px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded text-xs"
+                          className="inline-flex items-center px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-200 rounded text-xs"
                         >
                           {opt.optionName}
                           {opt.priceModifier > 0 && (
-                            <span className="ml-1 text-blue-400">
+                            <span className="ml-1 text-blue-400 dark:text-blue-300">
                               +{formatCurrency(opt.priceModifier)}
                             </span>
                           )}
@@ -150,9 +150,9 @@ export function CartItem({ item, onUpdate }: CartItemProps) {
         )}
 
         {/* Price */}
-        <div className="mt-2 text-sm text-gray-500">
+        <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
           {formatCurrency(item.unitPrice)} × {item.quantity} ={' '}
-          <span className="font-medium text-gray-900">
+          <span className="font-medium text-gray-900 dark:text-white">
             {formatCurrency(item.unitPrice * item.quantity)}
           </span>
         </div>

@@ -187,12 +187,13 @@ model OrderItem {
   unitPrice       Decimal   @db.Decimal(10, 2)
   totalPrice      Decimal   @db.Decimal(10, 2)
   notes           String?
-  
+
   selectedOptions Json?
-  
+  boxItemConfigurations Json?  // [{productId, productName, selectedOptions}]
+
   isCustomRequest Boolean   @default(false)
   customRequestText String?
-  
+
   // Relations
   orderId         String
   order           Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
@@ -200,7 +201,7 @@ model OrderItem {
   product         Product?  @relation(fields: [productId], references: [id])
   boxId           String?   // NEU
   box             Box?      @relation(fields: [boxId], references: [id])  // NEU
-  
+
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
