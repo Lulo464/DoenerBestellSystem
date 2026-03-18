@@ -24,7 +24,6 @@ function createTransporter() {
 
 const appName = process.env.NEXT_PUBLIC_APP_NAME || process.env.APP_NAME || 'Bestellsystem'
 const from = process.env.SMTP_FROM || `${appName} <noreply@example.com>`
-const emailsEnabled = process.env.EMAILS_ENABLED !== 'false' // Default: true
 
 // ==================== HTML-Basis-Template ====================
 
@@ -115,7 +114,7 @@ function formatEur(amount: number): string {
 // ==================== Einzelne Mails ====================
 
 export async function sendOrderConfirmation(data: OrderMailData, shouldSend: boolean = true) {
-  if (!shouldSend || !emailsEnabled) return
+  if (!shouldSend) return
 
   const transporter = createTransporter()
   if (!transporter) return
@@ -156,7 +155,7 @@ export async function sendStatusUpdate(
   status: OrderStatus,
   shouldSend: boolean = true
 ) {
-  if (!shouldSend || !emailsEnabled) return
+  if (!shouldSend) return
 
   const transporter = createTransporter()
   if (!transporter) return
@@ -213,7 +212,7 @@ export async function sendStatusUpdate(
 }
 
 export async function sendPaymentDue(data: OrderMailData, shouldSend: boolean = true) {
-  if (!shouldSend || !emailsEnabled) return
+  if (!shouldSend) return
 
   const transporter = createTransporter()
   if (!transporter) return
@@ -275,7 +274,7 @@ export async function sendPaymentDue(data: OrderMailData, shouldSend: boolean = 
 }
 
 export async function sendOrderCompleted(data: OrderMailData, shouldSend: boolean = true) {
-  if (!shouldSend || !emailsEnabled) return
+  if (!shouldSend) return
 
   const transporter = createTransporter()
   if (!transporter) return
