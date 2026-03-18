@@ -1,37 +1,23 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/toast'
-import { getCurrentUser } from '@/lib/auth'
 import { updateUserNotificationSettings } from '@/actions/user'
 
 export default function SettingsPage() {
+  const { data: session, status } = useSession()
   const { addToast } = useToast()
-  const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
-  const [user, setUser] = useState<any>(null)
   const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true)
 
   useEffect(() => {
-    loadUser()
-  }, [])
-
-  const loadUser = async () => {
-    setIsLoading(true)
-    try {
-      const currentUser = await getCurrentUser()
-      if (currentUser) {
-        setUser(currentUser)
-        setEmailNotificationsEnabled(currentUser.emailNotificationsEnabled ?? true)
-      }
-    } catch (err) {
-      addToast('Fehler beim Laden der Einstellungen', 'error')
-    } finally {
-      setIsLoading(false)
+    if (session?.user) {
+      setEmailNotificationsEnabled((session.user as any).emailNotificationsEnabled ?? true)
     }
-  }
+  }, [session])
 
   const handleSaveSettings = async () => {
     setIsSaving(true)
@@ -41,16 +27,17 @@ export default function SettingsPage() {
       })
       if (result.success) {
         addToast('Einstellungen gespeichert', 'success')
-        loadUser()
       } else {
         addToast(result.error || 'Fehler beim Speichern', 'error')
       }
+    } catch (err) {
+      addToast('Fehler beim Speichern', 'error')
     } finally {
       setIsSaving(false)
     }
   }
 
-  if (isLoading) {
+  if (status === 'loading') {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600" />
@@ -58,7 +45,7 @@ export default function SettingsPage() {
     )
   }
 
-  if (!user) {
+  if (!session?.user) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-6">
         <Card>
@@ -69,6 +56,8 @@ export default function SettingsPage() {
       </div>
     )
   }
+
+  const user = session.user as any
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
@@ -128,7 +117,11 @@ export default function SettingsPage() {
             >
               Speichern
             </Button>
-            <Button variant="outline" onClick={loadUser} disabled={isSaving}>
+            <Button
+              variant="outline"
+              onClick={() => setEmailNotificationsEnabled(user.emailNotificationsEnabled ?? true)}
+              disabled={isSaving}
+            >
               Zurücksetzen
             </Button>
           </div>

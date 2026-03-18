@@ -118,8 +118,8 @@ export function Header() {
                     </Button>
                   </Link>
                   <Link href="/settings">
-                    <Button variant="outline" size="sm" title="Einstellungen">
-                      ⚙️ Einstellungen
+                    <Button variant="ghost" size="sm" title="Einstellungen">
+                      ⚙️
                     </Button>
                   </Link>
                   {mounted && (
