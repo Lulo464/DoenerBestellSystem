@@ -27,6 +27,8 @@ export default function NewProductPage() {
   const [basePrice, setBasePrice] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [isConfigurable, setIsConfigurable] = useState(false)
+  const [imageUrl, setImageUrl] = useState('')
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
 
   const userRole = session?.user?.role as Role | undefined
   const canChangePrice = userRole ? hasPermission(userRole, 'change_prices') : false
@@ -69,6 +71,7 @@ export default function NewProductPage() {
         categoryId,
         isActive: true,
         isConfigurable,
+        imageUrl: imageUrl || undefined,
       })
 
       if (result.success && result.data) {
@@ -81,6 +84,36 @@ export default function NewProductPage() {
       addToast('Ein Fehler ist aufgetreten', 'error')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsUploadingImage(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || 'Upload fehlgeschlagen')
+      }
+
+      const data = await res.json()
+      setImageUrl(data.url)
+      addToast('Bild hochgeladen', 'success')
+    } catch (err) {
+      addToast((err as Error).message || 'Upload fehlgeschlagen', 'error')
+    } finally {
+      setIsUploadingImage(false)
+      e.target.value = ''
     }
   }
 
@@ -101,6 +134,50 @@ export default function NewProductPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Image Upload */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-white">
+                Produktbild
+              </label>
+              <div className="flex gap-3">
+                {imageUrl && (
+                  <div className="relative">
+                    <img
+                      src={imageUrl}
+                      alt="Preview"
+                      className="w-20 h-20 rounded object-cover border border-gray-300"
+                    />
+                    <button
+                      onClick={() => setImageUrl('')}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                      type="button"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
+                <div className="flex-1">
+                  <input
+                    type="file"
+                    id="image-upload"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    onChange={handleImageUpload}
+                    disabled={isLoading || isUploadingImage}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="image-upload"
+                    className="inline-block px-3 py-2 bg-primary-600 text-white text-sm rounded cursor-pointer hover:bg-primary-700 disabled:opacity-50"
+                  >
+                    {isUploadingImage ? 'Lädt...' : '📸 Bild hochladen'}
+                  </label>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Max 5MB (JPG, PNG, WebP, GIF)
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <Input
               label="Name *"
               value={name}

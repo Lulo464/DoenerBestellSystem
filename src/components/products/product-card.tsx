@@ -60,12 +60,20 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   return (
     <>
       <Card className="overflow-hidden hover:shadow-md transition-shadow">
-        {/* Image Placeholder */}
-        <div className="h-40 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
-          <span className="text-5xl">
-            {getProductEmoji(categoryName)}
-          </span>
-        </div>
+        {/* Image */}
+        {product.imageUrl ? (
+          <img
+            src={product.imageUrl}
+            alt={product.name}
+            className="w-full h-40 object-cover"
+          />
+        ) : (
+          <div className="h-40 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
+            <span className="text-5xl">
+              {getProductEmoji(categoryName)}
+            </span>
+          </div>
+        )}
 
         <CardContent className="p-4">
           <div className="flex justify-between items-start mb-2">
