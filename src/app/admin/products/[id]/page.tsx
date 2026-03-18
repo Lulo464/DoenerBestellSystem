@@ -179,6 +179,34 @@ export default function EditProductPage() {
     }
   }
 
+  const handleRemoveImage = async () => {
+    setImageUrl('')
+    setIsSaving(true)
+    try {
+      const result = await updateProduct(params.id as string, {
+        name: name.trim(),
+        description: description.trim(),
+        basePrice: canChangePrice ? (parseFloat(basePrice) || 0) : undefined,
+        categoryId,
+        isActive,
+        isConfigurable,
+        sortOrder: sortOrder ? parseInt(sortOrder) : undefined,
+        imageUrl: undefined,
+      })
+
+      if (result.success) {
+        addToast('Bild entfernt', 'success')
+        loadData()
+      } else {
+        addToast(result.error || 'Fehler beim Entfernen des Bildes', 'error')
+      }
+    } catch (err) {
+      addToast('Ein Fehler ist aufgetreten', 'error')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   // Option Group Handlers
   const openOptionGroupDialog = (group?: OptionGroupWithOptions) => {
     if (group) {
@@ -397,9 +425,11 @@ export default function EditProductPage() {
                       className="w-20 h-20 rounded object-cover border border-gray-300"
                     />
                     <button
-                      onClick={() => setImageUrl('')}
-                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                      onClick={handleRemoveImage}
+                      disabled={isSaving}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 disabled:opacity-50"
                       type="button"
+                      title="Bild entfernen"
                     >
                       ✕
                     </button>
