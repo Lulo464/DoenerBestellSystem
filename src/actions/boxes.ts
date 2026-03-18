@@ -394,7 +394,16 @@ export async function addBoxToCart(
     const box = await prisma.box.findUnique({
       where: { id: boxId },
       include: {
-        items: true,
+        items: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
     })
 
@@ -413,18 +422,17 @@ export async function addBoxToCart(
       for (const boxItem of box.items) {
         const adminPresets = (boxItem.selectedOptions as SelectedOption[] | null) || []
 
-        if (adminPresets.length > 0) {
-          adminConfigs.push({
-            productId: boxItem.productId,
-            productName: '', // wird nicht benötigt, aber für Typ erforderlich
-            selectedOptions: adminPresets,
-          })
+        // Füge immer die Konfiguration hinzu, auch wenn leer (für komplette Vorkonfiguration)
+        adminConfigs.push({
+          productId: boxItem.productId,
+          productName: (boxItem.product as any)?.name || 'Unbekanntes Produkt',
+          selectedOptions: adminPresets,
+        })
 
-          // Berechne Aufpreis für Admin-Presets
-          adminPresets.forEach((opt) => {
-            totalExtraPrice += opt.priceModifier
-          })
-        }
+        // Berechne Aufpreis für Admin-Presets
+        adminPresets.forEach((opt) => {
+          totalExtraPrice += opt.priceModifier
+        })
       }
 
       finalConfigurations = adminConfigs
@@ -446,7 +454,8 @@ export async function addBoxToCart(
         boxId,
         quantity,
         unitPrice: new Decimal(finalPrice),
-        boxItemConfigurations: finalConfigurations.length > 0
+        // Speichere immer Konfigurationen, wenn sie vorhanden sind
+        boxItemConfigurations: finalConfigurations && finalConfigurations.length > 0
           ? finalConfigurations
           : undefined,
       },
