@@ -31,6 +31,7 @@ export default function AdminOrdersPage() {
 
   // Delivery List Modal
   const [deliveryOrder, setDeliveryOrder] = useState<OrderWithDetails | null>(null)
+  const [showMasterDeliveryList, setShowMasterDeliveryList] = useState(false)
 
   useEffect(() => {
     loadData()
@@ -171,6 +172,12 @@ export default function AdminOrdersPage() {
     <div className="p-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <h1 className="text-2xl font-bold">Bestellungen</h1>
+        <Button
+          onClick={() => setShowMasterDeliveryList(true)}
+          className="bg-blue-600 hover:bg-blue-700 text-white"
+        >
+          📋 Gesamtliste
+        </Button>
       </div>
 
       {/* Filter */}
@@ -382,6 +389,109 @@ export default function AdminOrdersPage() {
         </DialogFooter>
       </Dialog>
 
+      {/* Master Delivery List Modal - alle Bestellungen sortiert nach Kategorien */}
+      {showMasterDeliveryList && (
+        <Dialog open onClose={() => setShowMasterDeliveryList(false)}>
+          <DialogHeader>
+            <DialogTitle>📋 Gesamtlieferliste - Alle Bestellungen</DialogTitle>
+          </DialogHeader>
+          <DialogContent className="max-h-[80vh] overflow-y-auto">
+            {orders
+              .filter((o) => ['PENDING', 'CONFIRMED', 'ON_THE_WAY'].includes(o.status))
+              .length === 0 ? (
+              <p className="text-gray-500">Keine ausstehenden Bestellungen</p>
+            ) : (
+              <div className="space-y-4">
+                {/* Group by Produkt-Name */}
+                {Array.from(
+                  orders
+                    .filter((o) => ['PENDING', 'CONFIRMED', 'ON_THE_WAY'].includes(o.status))
+                    .reduce((acc, order) => {
+                      order.items.forEach((item) => {
+                        const key = item.isCustomRequest
+                          ? 'Sonderwünsche'
+                          : (item as any).box?.name || item.product?.name || 'Sonstiges'
+                        if (!acc.has(key)) acc.set(key, [])
+                        acc.get(key)!.push({ order, item })
+                      })
+                      return acc
+                    }, new Map<string, Array<{ order: OrderWithDetails; item: any }>>())
+                ).map(([productName, items]) => (
+                  <div key={productName} className="border rounded-lg p-4">
+                    <h3 className="font-bold text-lg mb-3 text-primary-600">
+                      {productName} ({items.length}×)
+                    </h3>
+                    <div className="space-y-2">
+                      {items.map(({ order, item }, idx) => (
+                        <div key={`${order.id}-${idx}`} className="text-sm bg-gray-50 dark:bg-gray-700 p-2 rounded">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <p className="font-medium text-gray-800 dark:text-gray-200">
+                                {order.user?.name} ({order.orderNumber})
+                              </p>
+
+                              {/* Box Details */}
+                              {(item as any).box?.items && (
+                                <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 ml-2">
+                                  {(item as any).box.items.map((boxItem: any, j: number) => {
+                                    const config = item.boxItemConfigurations?.find(
+                                      (c: any) => c.productId === boxItem.product?.id
+                                    )
+                                    return (
+                                      <div key={j}>
+                                        • {boxItem.product?.name}
+                                        {config?.selectedOptions && config.selectedOptions.length > 0 && (
+                                          <div className="text-xs text-gray-500 dark:text-gray-500 ml-3">
+                                            {config.selectedOptions
+                                              .map((opt: any) => opt.optionName)
+                                              .join(', ')}
+                                          </div>
+                                        )}
+                                      </div>
+                                    )
+                                  })}
+                                </div>
+                              )}
+
+                              {/* Regular product options */}
+                              {item.selectedOptions && (item.selectedOptions as any).length > 0 && !item.isCustomRequest && (
+                                <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 ml-2">
+                                  {(item.selectedOptions as any).map((opt: any) => opt.optionName).join(', ')}
+                                </div>
+                              )}
+
+                              {/* Custom request */}
+                              {item.isCustomRequest && item.customRequestText && (
+                                <p className="text-xs text-yellow-700 dark:text-yellow-400 mt-1 ml-2">
+                                  📝 {item.customRequestText}
+                                </p>
+                              )}
+                            </div>
+                            <span className="text-right whitespace-nowrap ml-2">
+                              <span className="inline-block bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 px-2 py-0.5 rounded text-xs font-medium">
+                                {item.quantity}×
+                              </span>
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </DialogContent>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowMasterDeliveryList(false)}>
+              Schließen
+            </Button>
+            <Button onClick={() => window.print()}>
+              🖨️ Drucken
+            </Button>
+          </DialogFooter>
+        </Dialog>
+      )}
+
       {/* Delivery List Modal */}
       {deliveryOrder && (
         <Dialog open onClose={() => setDeliveryOrder(null)}>
@@ -411,15 +521,30 @@ export default function AdminOrdersPage() {
                     </p>
                   )}
 
-                  {/* Box Items anzeigen */}
+                  {/* Box Items mit Konfigurationen anzeigen */}
                   {(item as any).box?.items && (
-                    <div className="text-sm space-y-1 ml-2">
-                      <p className="font-medium text-gray-600">Inhalt:</p>
-                      {(item as any).box.items.map((boxItem: any, j: number) => (
-                        <div key={j} className="text-gray-700">
-                          • {boxItem.quantity}× {boxItem.product?.name}
-                        </div>
-                      ))}
+                    <div className="text-sm space-y-2 ml-2 border-l-2 border-gray-300 pl-2">
+                      <p className="font-medium text-gray-600">📦 Box Inhalt:</p>
+                      {(item as any).box.items.map((boxItem: any, j: number) => {
+                        // Finde die Konfiguration für dieses BoxItem
+                        const config = item.boxItemConfigurations?.find((c: any) => c.productId === boxItem.product?.id)
+                        return (
+                          <div key={j} className="bg-gray-50 dark:bg-gray-700 p-2 rounded">
+                            <div className="font-medium text-gray-800 dark:text-gray-200">
+                              • {boxItem.quantity}× {boxItem.product?.name}
+                            </div>
+                            {config?.selectedOptions && config.selectedOptions.length > 0 && (
+                              <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 ml-3 space-y-0.5">
+                                {config.selectedOptions.map((opt: any, k: number) => (
+                                  <div key={k}>
+                                    → {opt.groupName}: <span className="font-medium">{opt.optionName}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
                     </div>
                   )}
 
@@ -464,9 +589,6 @@ export default function AdminOrdersPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeliveryOrder(null)}>
               Schließen
-            </Button>
-            <Button onClick={() => window.print()}>
-              🖨️ Drucken
             </Button>
           </DialogFooter>
         </Dialog>
