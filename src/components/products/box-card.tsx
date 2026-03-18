@@ -4,8 +4,10 @@ import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Dialog, DialogHeader, DialogTitle, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { formatCurrency } from '@/lib/utils'
-import { BoxWithItems } from '@/actions/boxes'
+import { BoxWithItems, ProductConfig } from '@/actions/boxes'
+import { SelectedOption } from '@/types'
 import { BoxConfigurator } from './box-configurator'
 
 interface ProductDetails {
@@ -38,6 +40,7 @@ interface BoxCardProps {
 export function BoxCard({ box, productDetails, onAddToCart }: BoxCardProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [showConfigurator, setShowConfigurator] = useState(false)
+  const [showPreview, setShowPreview] = useState(false)
 
   // Berechne Einzelpreis-Summe
   const originalPrice = box.items.reduce(
@@ -142,15 +145,66 @@ export function BoxCard({ box, productDetails, onAddToCart }: BoxCardProps) {
             )}
           </div>
 
-          <Button
-            className="w-full"
-            onClick={handleClick}
-            isLoading={isLoading}
-          >
-            In den Warenkorb
-          </Button>
+          <div className="space-y-2">
+            <Button
+              className="w-full"
+              onClick={handleClick}
+              isLoading={isLoading}
+            >
+              In den Warenkorb
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => setShowPreview(true)}
+            >
+              Konfiguration anzeigen
+            </Button>
+          </div>
         </CardContent>
       </Card>
+
+      {/* Preview Modal - Zeige Vorkonfigurationen */}
+      {showPreview && (
+        <Dialog open onClose={() => setShowPreview(false)}>
+          <DialogHeader>
+            <DialogTitle>{box.name} - Vorkonfiguration</DialogTitle>
+          </DialogHeader>
+          <DialogContent className="max-h-[60vh] overflow-y-auto">
+            <div className="space-y-4">
+              {box.items.map((item) => {
+                const selectedOptions = (item.selectedOptions as SelectedOption[] | null) || []
+                return (
+                  <div key={item.id} className="border rounded-lg p-3">
+                    <p className="font-medium mb-2">{item.product.name}</p>
+                    {selectedOptions.length > 0 ? (
+                      <div className="space-y-1">
+                        {selectedOptions.map((opt, i) => (
+                          <div key={i} className="flex items-center gap-2 text-sm">
+                            <span className="inline-block w-2 h-2 bg-primary-600 rounded-full" />
+                            <span className="text-gray-700 dark:text-gray-300">{opt.groupName}:</span>
+                            <span className="font-medium text-gray-900 dark:text-white">{opt.optionName}</span>
+                            {opt.priceModifier > 0 && (
+                              <span className="text-green-600 text-xs ml-auto">+{formatCurrency(opt.priceModifier)}</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Keine Optionen konfiguriert</p>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </DialogContent>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPreview(false)}>
+              Schließen
+            </Button>
+          </DialogFooter>
+        </Dialog>
+      )}
 
       {/* Box Configurator Modal */}
       {showConfigurator && productDetails && (

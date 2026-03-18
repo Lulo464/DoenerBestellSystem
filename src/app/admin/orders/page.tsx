@@ -29,6 +29,9 @@ export default function AdminOrdersPage() {
   const [selectedPaymentAccountId, setSelectedPaymentAccountId] = useState('')
   const [isSavingPayment, setIsSavingPayment] = useState(false)
 
+  // Delivery List Modal
+  const [deliveryOrder, setDeliveryOrder] = useState<OrderWithDetails | null>(null)
+
   useEffect(() => {
     loadData()
   }, [statusFilter])
@@ -303,6 +306,15 @@ export default function AdminOrdersPage() {
                         </Button>
                       )}
 
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setDeliveryOrder(order)}
+                        className="w-full"
+                      >
+                        Lieferliste
+                      </Button>
+
                       <Link href={`/orders/${order.id}`}>
                         <Button variant="outline" size="sm" className="w-full">
                           Details
@@ -369,6 +381,96 @@ export default function AdminOrdersPage() {
           </Button>
         </DialogFooter>
       </Dialog>
+
+      {/* Delivery List Modal */}
+      {deliveryOrder && (
+        <Dialog open onClose={() => setDeliveryOrder(null)}>
+          <DialogHeader>
+            <DialogTitle>Lieferliste — {deliveryOrder.orderNumber}</DialogTitle>
+          </DialogHeader>
+          <DialogContent className="max-h-[70vh] overflow-y-auto">
+            <div className="space-y-4">
+              <div className="border-b pb-3">
+                <p className="text-sm">
+                  <strong>Kunde:</strong> {deliveryOrder.user?.name || '(Benutzer gelöscht)'}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {deliveryOrder.user?.email}
+                </p>
+              </div>
+
+              {deliveryOrder.items.map((item, i) => (
+                <div key={item.id} className="border rounded-lg p-3 space-y-2">
+                  <div className="font-medium text-lg">
+                    {item.quantity}× {item.isCustomRequest ? 'Sonderwunsch' : (item as any).box?.name || item.product?.name}
+                  </div>
+
+                  {item.isCustomRequest && item.customRequestText && (
+                    <p className="text-sm text-gray-700 bg-yellow-50 p-2 rounded">
+                      📝 {item.customRequestText}
+                    </p>
+                  )}
+
+                  {/* Box Items anzeigen */}
+                  {(item as any).box?.items && (
+                    <div className="text-sm space-y-1 ml-2">
+                      <p className="font-medium text-gray-600">Inhalt:</p>
+                      {(item as any).box.items.map((boxItem: any, j: number) => (
+                        <div key={j} className="text-gray-700">
+                          • {boxItem.quantity}× {boxItem.product?.name}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Selected Options anzeigen */}
+                  {item.selectedOptions && (item.selectedOptions as any).length > 0 && (
+                    <div className="text-sm space-y-1 ml-2">
+                      <p className="font-medium text-gray-600">Optionen:</p>
+                      {(item.selectedOptions as any).map((opt: any, j: number) => (
+                        <div key={j} className="text-gray-700">
+                          • {opt.groupName}: <strong>{opt.optionName}</strong>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="text-right text-sm font-medium pt-2">
+                    {formatCurrency(item.totalPrice)}
+                  </div>
+                </div>
+              ))}
+
+              <div className="border-t pt-3 space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span>Summe:</span>
+                  <strong>{formatCurrency(deliveryOrder.totalAmount)}</strong>
+                </div>
+                {deliveryOrder.finalAmount !== null && (
+                  <div className="flex justify-between text-sm text-primary-600">
+                    <span>Genau zu zahlen:</span>
+                    <strong>{formatCurrency(deliveryOrder.finalAmount)}</strong>
+                  </div>
+                )}
+              </div>
+
+              {deliveryOrder.notes && (
+                <div className="bg-blue-50 p-3 rounded text-sm">
+                  <strong>Notizen:</strong> {deliveryOrder.notes}
+                </div>
+              )}
+            </div>
+          </DialogContent>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeliveryOrder(null)}>
+              Schließen
+            </Button>
+            <Button onClick={() => window.print()}>
+              🖨️ Drucken
+            </Button>
+          </DialogFooter>
+        </Dialog>
+      )}
     </div>
   )
 }
