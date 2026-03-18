@@ -3,7 +3,6 @@ import { join } from 'path'
 import { getServerSession } from 'next-auth/next'
 import { hasPermission } from '@/lib/permissions'
 import { Role } from '@prisma/client'
-import { v4 as uuid } from 'crypto'
 import { randomBytes } from 'crypto'
 
 const UPLOAD_DIR = join(process.cwd(), 'public', 'uploads', 'products')
