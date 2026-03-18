@@ -18,13 +18,35 @@ npm --version
 
 ## 📋 Schnellstart mit Docker (Empfohlen)
 
-### 1. Repository klonen
+### Option 1: Mit vorgefertigtem Image von Docker Hub (Schnellste Methode)
+
+```bash
+# Image pullen
+docker pull lulo464/doener-app:latest
+
+# Container mit Environment-Variablen starten
+docker run -d \
+  --name doener-app \
+  -p 3000:3000 \
+  -e SMTP_HOST="smtp.gmail.com" \
+  -e SMTP_PORT="587" \
+  -e SMTP_USER="deine-email@example.com" \
+  -e SMTP_PASS="dein-app-passwort" \
+  -e DATABASE_URL="postgresql://..." \
+  lulo464/doener-app:latest
+```
+
+Die App ist dann verfügbar unter: **http://localhost:3000**
+
+### Option 2: Mit Repository klonen und Docker Compose
+
+#### 2.1 Repository klonen
 ```bash
 git clone <repository-url>
 cd DoenerDBV1
 ```
 
-### 2. Environment-Variablen konfigurieren
+#### 2.2 Environment-Variablen konfigurieren
 ```bash
 cp .env.example .env
 ```
@@ -58,14 +80,14 @@ OIDC_SUPERADMIN_EMAIL="admin@firma.de"
 
 Alle drei Parameter müssen gesetzt sein, damit OIDC aktiviert wird. Siehe [OIDC-Setup](#oidc-setup-anleitung) für Details.
 
-### 3. Docker starten
+#### 2.3 Docker starten
 ```bash
 docker-compose up -d
 ```
 
 Die App ist dann verfügbar unter: **http://localhost:3000**
 
-### 4. Datenbank überprüfen
+#### 2.4 Datenbank überprüfen
 ```bash
 # Logs anschauen
 docker-compose logs -f doener-app
@@ -74,7 +96,7 @@ docker-compose logs -f doener-app
 # "🎉 Seeding completed!"
 ```
 
-### 5. Anmelden
+#### 2.5 Anmelden
 Nutze einen dieser Test-Accounts (Passwort: `password123`):
 - **superadmin@firma.de** - Vollzugriff
 - **admin@firma.de** - Admin-Funktionen

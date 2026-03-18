@@ -58,7 +58,29 @@ Ein modernes und vollständiges Bestell- und Verwaltungssystem für Restaurants 
 
 ⚠️ **WICHTIG**: Lese die vollständige Anleitung in [SETUP.md](./SETUP.md) für ein problemloses Neuaufsetzen auf anderen Systemen!
 
-### Option 1: Mit Docker (Empfohlen)
+### Option 1: Mit vorgefertigtem Image von Docker Hub (Schnellste Methode ⚡)
+
+```bash
+# Aktuelles Image pullen
+docker pull lulo464/doener-app:latest
+
+# Container mit Environment-Variablen starten
+docker run -d \
+  --name doener-app \
+  -p 3000:3000 \
+  -e SMTP_HOST="smtp.gmail.com" \
+  -e SMTP_PORT="587" \
+  -e SMTP_USER="deine-email@example.com" \
+  -e SMTP_PASS="dein-app-passwort" \
+  -e DATABASE_URL="postgresql://foodorder:foodorder@localhost:5432/foodorder" \
+  lulo464/doener-app:latest
+
+# App unter http://localhost:3000 verfügbar
+```
+
+> **Tipp**: Für einfacheres Setup mit PostgreSQL-Datenbank nutze Option 2 (Docker Compose)
+
+### Option 2: Mit Docker Compose (Mit Datenbank)
 
 ```bash
 # Repository klonen
@@ -69,13 +91,13 @@ cd DoenerDBV1
 cp .env.example .env
 # 🔥 WICHTIG: Bearbeite .env und trage SMTP-Daten ein!
 
-# Container starten
+# Container starten (nutzt lulo464/doener-app:latest)
 docker-compose up -d
 
 # App unter http://localhost:3000 verfügbar
 ```
 
-### Option 2: Lokale Installation
+### Option 3: Lokale Installation
 
 ```bash
 # Dependencies installieren (erzeugt exakte Versionen via package-lock.json)
@@ -157,10 +179,22 @@ https://DEINE-DOMAIN.de/api/auth/callback/oidc
 
 ## 🐳 Docker
 
-### Projekt mit Docker starten
+### Verfügbares Image auf Docker Hub
+
+Die aktuelle Version ist auf **Docker Hub** verfügbar:
+```
+lulo464/doener-app:latest
+```
+
+**Direkt pullen:**
+```bash
+docker pull lulo464/doener-app:latest
+```
+
+### Projekt mit Docker Compose starten
 
 ```bash
-# Services starten
+# Services starten (nutzt automatisch lulo464/doener-app:latest)
 docker-compose up -d
 
 # Logs ansehen
@@ -171,7 +205,7 @@ docker-compose down
 ```
 
 ### Services
-- **doener-app**: Next.js App auf Port 3000
+- **doener-app**: Next.js App auf Port 3000 (via `lulo464/doener-app:latest`)
 - **doener-db**: PostgreSQL auf Port 5432
 
 ## 💾 Datenbank-Verwaltung
@@ -326,7 +360,21 @@ SMTP_FROM="noreply@example.com"
 
 ## 🚢 Deployment
 
-### Mit Docker (empfohlen)
+### Mit Docker Hub Image (empfohlen ⭐)
+
+Das neueste Image ist bereits auf Docker Hub verfügbar:
+
+```bash
+# Einfach das vorgefertigte Image nutzen
+docker pull lulo464/doener-app:latest
+
+# Auf Server deployen
+docker-compose up -d
+```
+
+Keine eigene Build notwendig - verwende einfach `lulo464/doener-app:latest` in deiner `docker-compose.yml`!
+
+### Mit eigenem Docker Image
 
 ```bash
 # Production Image bauen
