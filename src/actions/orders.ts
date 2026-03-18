@@ -170,7 +170,15 @@ export async function getOrders(filters?: OrderFilters) {
             select: { id: true, name: true },
           },
           box: {
-            select: { id: true, name: true },
+            include: {
+              items: {
+                include: {
+                  product: {
+                    select: { id: true, name: true },
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -187,6 +195,7 @@ export async function getOrders(filters?: OrderFilters) {
       unitPrice: Number(item.unitPrice),
       totalPrice: Number(item.totalPrice),
       selectedOptions: item.selectedOptions as SelectedOption[] | null,
+      boxItemConfigurations: item.boxItemConfigurations as any[] | null,
     })),
   }))
   
