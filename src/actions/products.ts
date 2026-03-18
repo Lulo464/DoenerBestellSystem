@@ -236,6 +236,11 @@ export async function updateProduct(productId: string, data: Partial<ProductForm
       updateData.basePrice = new Decimal(data.basePrice)
     }
 
+    // Explicitly set imageUrl to null if undefined (to clear it in DB)
+    if ('imageUrl' in data && data.imageUrl === undefined) {
+      updateData.imageUrl = null
+    }
+
     await prisma.product.update({
       where: { id: productId },
       data: updateData,
