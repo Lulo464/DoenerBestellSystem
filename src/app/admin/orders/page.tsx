@@ -439,7 +439,7 @@ export default function AdminOrdersPage() {
                                     )
                                     return (
                                       <div key={j}>
-                                        • {boxItem.product?.name}
+                                        • {boxItem.quantity}× {boxItem.product?.name}
                                         {config?.selectedOptions && config.selectedOptions.length > 0 && (
                                           <div className="text-xs text-gray-500 dark:text-gray-500 ml-3">
                                             {config.selectedOptions
