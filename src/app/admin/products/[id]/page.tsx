@@ -133,7 +133,7 @@ export default function EditProductPage() {
         isActive,
         isConfigurable,
         sortOrder: sortOrder ? parseInt(sortOrder) : undefined,
-        imageUrl: imageUrl || undefined,
+        imageUrl: imageUrl || null,
       })
 
       if (result.success) {
@@ -191,16 +191,17 @@ export default function EditProductPage() {
         isActive,
         isConfigurable,
         sortOrder: sortOrder ? parseInt(sortOrder) : undefined,
-        imageUrl: undefined,
+        imageUrl: null,
       })
 
       if (result.success) {
         addToast('Bild entfernt', 'success')
-        loadData()
       } else {
+        setImageUrl(product?.imageUrl || '')
         addToast(result.error || 'Fehler beim Entfernen des Bildes', 'error')
       }
     } catch (err) {
+      setImageUrl(product?.imageUrl || '')
       addToast('Ein Fehler ist aufgetreten', 'error')
     } finally {
       setIsSaving(false)

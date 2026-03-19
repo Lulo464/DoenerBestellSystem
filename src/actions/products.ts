@@ -211,7 +211,7 @@ export async function createProduct(data: ProductFormData) {
   }
 }
 
-export async function updateProduct(productId: string, data: Partial<ProductFormData> & { sortOrder?: number }) {
+export async function updateProduct(productId: string, data: Partial<ProductFormData> & { sortOrder?: number, imageUrl?: string | null }) {
   try {
     const user = await getCurrentUser()
 
@@ -233,31 +233,34 @@ export async function updateProduct(productId: string, data: Partial<ProductForm
     const updateData: any = {}
 
     // Only include fields that are explicitly provided
-    if ('name' in data && data.name !== undefined) {
+    if (data.name !== undefined) {
       updateData.name = data.name
     }
-    if ('description' in data && data.description !== undefined) {
+    if (data.description !== undefined) {
       updateData.description = data.description
     }
-    if ('basePrice' in data && data.basePrice !== undefined) {
+    if (data.basePrice !== undefined) {
       updateData.basePrice = new Decimal(data.basePrice)
     }
-    if ('categoryId' in data && data.categoryId !== undefined) {
+    if (data.categoryId !== undefined) {
       updateData.categoryId = data.categoryId
     }
-    if ('isActive' in data && data.isActive !== undefined) {
+    if (data.isActive !== undefined) {
       updateData.isActive = data.isActive
     }
-    if ('isConfigurable' in data && data.isConfigurable !== undefined) {
+    if (data.isConfigurable !== undefined) {
       updateData.isConfigurable = data.isConfigurable
     }
-    if ('sortOrder' in data && data.sortOrder !== undefined) {
+    if (data.sortOrder !== undefined) {
       updateData.sortOrder = data.sortOrder
     }
 
     // Handle imageUrl - explicitly set to null to delete the image
+    // If imageUrl is in data (even if undefined/null), set it (empty string, null, or undefined becomes null)
     if ('imageUrl' in data) {
-      updateData.imageUrl = data.imageUrl || null
+      updateData.imageUrl = (data.imageUrl === undefined || data.imageUrl === null || data.imageUrl === '')
+        ? null
+        : data.imageUrl
     }
 
     await prisma.product.update({
