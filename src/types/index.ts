@@ -9,13 +9,15 @@ declare module 'next-auth' {
     name: string
     role: Role
     totpEnabled: boolean
+    emailNotificationsEnabled: boolean
   }
-  
+
   interface Session {
     user: User & {
       id: string
       role: string
       totpEnabled: boolean
+      emailNotificationsEnabled: boolean
     }
   }
 }
@@ -25,6 +27,7 @@ declare module 'next-auth/jwt' {
     id: string
     role: string
     totpEnabled: boolean
+    emailNotificationsEnabled: boolean
   }
 }
 

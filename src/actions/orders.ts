@@ -79,7 +79,7 @@ export async function createOrder(params: {
   revalidatePath('/admin/orders')
 
   // Bestätigungsmail (nur wenn Benachrichtigungen aktiviert)
-  sendOrderConfirmation({
+  await sendOrderConfirmation({
     to: user.email,
     customerName: user.name,
     orderNumber: order.orderNumber,

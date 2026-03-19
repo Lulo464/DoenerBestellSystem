@@ -254,16 +254,35 @@ export async function createBox(data: {
       include: {
         items: {
           include: {
-            product: true,
+            product: {
+              select: {
+                id: true,
+                name: true,
+                basePrice: true,
+              },
+            },
           },
         },
       },
     })
 
+    const result: BoxWithItems = {
+      ...box,
+      totalPrice: Number(box.totalPrice),
+      items: box.items.map((item) => ({
+        ...item,
+        selectedOptions: (item.selectedOptions as SelectedOption[] | null) ?? null,
+        product: {
+          ...item.product,
+          basePrice: Number(item.product.basePrice),
+        },
+      })),
+    }
+
     revalidatePath('/catalog')
     revalidatePath('/admin/boxes')
 
-    return { success: true, data: box }
+    return { success: true, data: result }
   } catch (error) {
     console.error('createBox error:', error)
     return { success: false, error: 'Fehler beim Erstellen der Box' }

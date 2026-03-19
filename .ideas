@@ -1,2 +1,20 @@
-REQUESt Warenkorb Dark Mode Schriftfarbe
-FIX BEI Boxen werden beim hinzufügen zum Warenkorb nicht die voreinstellungen vom admin übernommen nur bei der Soße
+# ==================== OIDC / SSO (optional) ====================
+# Wenn konfiguriert, wird der Credentials-Login deaktiviert und nur SSO angeboten
+# Kompatibel mit: Keycloak, Authentik, Okta, und anderen OIDC-Providern
+
+# OIDC Issuer URL (z.B. https://auth.beispiel.de/realms/myrealm)
+# Leer lassen um OIDC zu deaktivieren
+OIDC_ISSUER="https://authentik.heppner.site/application/o/bestellung/"
+
+# OIDC Client ID
+OIDC_CLIENT_ID="IXJHQ0dM7LotMlMWyZ1uw4xmgEIX6OFsoFutcwsx"
+
+# OIDC Client Secret
+OIDC_CLIENT_SECRET="fVcfCf4BM3MTFEL5ym8y6KA5NBqJGU9Z8MwELKteUYT4TSGErLF0jZphxOu55gqD0KKBVfAzkzmzLb38DUdp65FeFnyFPVYKYsp29uzqrRRkcYno7hiuMfhak7aiRVPR"
+
+# Anzeigename auf dem SSO-Login Button (optional, default: "SSO")
+OIDC_PROVIDER_NAME="SSO"
+
+# E-Mail-Adresse die automatisch SUPER_ADMIN Rolle erhält beim ersten OIDC-Login
+# Alle anderen Benutzer starten als EMPLOYEE
+OIDC_SUPERADMIN_EMAIL="tobi@gamingclan.online"

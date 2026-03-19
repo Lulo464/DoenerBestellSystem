@@ -8,7 +8,7 @@ import { useToast } from '@/components/ui/toast'
 import { updateUserNotificationSettings } from '@/actions/user'
 
 export default function SettingsPage() {
-  const { data: session, status } = useSession()
+  const { data: session, status, update } = useSession()
   const { addToast } = useToast()
   const [isSaving, setIsSaving] = useState(false)
   const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true)
@@ -26,6 +26,8 @@ export default function SettingsPage() {
         emailNotificationsEnabled,
       })
       if (result.success) {
+        // Refresh the session to force a JWT callback that will fetch fresh data from DB
+        await update()
         addToast('Einstellungen gespeichert', 'success')
       } else {
         addToast(result.error || 'Fehler beim Speichern', 'error')

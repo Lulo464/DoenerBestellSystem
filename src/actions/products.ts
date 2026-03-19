@@ -230,15 +230,34 @@ export async function updateProduct(productId: string, data: Partial<ProductForm
       return { success: false, error: 'Keine Berechtigung zur Preisänderung' }
     }
 
-    const updateData: any = { ...data }
+    const updateData: any = {}
 
-    if (data.basePrice !== undefined) {
+    // Only include fields that are explicitly provided
+    if ('name' in data && data.name !== undefined) {
+      updateData.name = data.name
+    }
+    if ('description' in data && data.description !== undefined) {
+      updateData.description = data.description
+    }
+    if ('basePrice' in data && data.basePrice !== undefined) {
       updateData.basePrice = new Decimal(data.basePrice)
     }
+    if ('categoryId' in data && data.categoryId !== undefined) {
+      updateData.categoryId = data.categoryId
+    }
+    if ('isActive' in data && data.isActive !== undefined) {
+      updateData.isActive = data.isActive
+    }
+    if ('isConfigurable' in data && data.isConfigurable !== undefined) {
+      updateData.isConfigurable = data.isConfigurable
+    }
+    if ('sortOrder' in data && data.sortOrder !== undefined) {
+      updateData.sortOrder = data.sortOrder
+    }
 
-    // Explicitly set imageUrl to null if undefined (to clear it in DB)
-    if ('imageUrl' in data && data.imageUrl === undefined) {
-      updateData.imageUrl = null
+    // Handle imageUrl - explicitly set to null to delete the image
+    if ('imageUrl' in data) {
+      updateData.imageUrl = data.imageUrl || null
     }
 
     await prisma.product.update({

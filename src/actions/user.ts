@@ -3,6 +3,8 @@
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '@/lib/auth-options'
 
 export async function updateUserNotificationSettings(params: {
   emailNotificationsEnabled: boolean
@@ -22,6 +24,7 @@ export async function updateUserNotificationSettings(params: {
     })
 
     revalidatePath('/settings')
+    revalidatePath('/')
 
     return {
       success: true,

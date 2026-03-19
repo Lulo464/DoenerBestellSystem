@@ -97,6 +97,7 @@ export const authOptions: NextAuthOptions = {
               name: user.name,
               role: user.role,
               totpEnabled: user.totpEnabled,
+              emailNotificationsEnabled: user.emailNotificationsEnabled,
             }
           },
         }),
@@ -141,17 +142,37 @@ export const authOptions: NextAuthOptions = {
         user.id = dbUser.id
         user.role = dbUser.role
         user.totpEnabled = dbUser.totpEnabled
+        user.emailNotificationsEnabled = dbUser.emailNotificationsEnabled
       }
 
       return true
     },
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, trigger }) {
+      // On sign in, set initial token values
       if (user) {
         token.id = user.id
         token.role = user.role
+        token.emailNotificationsEnabled = user.emailNotificationsEnabled ?? true
+        token.totpEnabled = user.totpEnabled ?? false
       }
 
-      // For OIDC users, fetch fresh role from DB
+      // When session is updated (after settings change), refresh user data from DB
+      if (trigger === 'update' && token.id) {
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.id as string },
+          })
+          if (dbUser) {
+            token.emailNotificationsEnabled = dbUser.emailNotificationsEnabled
+            token.role = dbUser.role
+            token.totpEnabled = dbUser.totpEnabled
+          }
+        } catch (err) {
+          console.error('Error refreshing user data from DB:', err)
+        }
+      }
+
+      // For OIDC users, fetch full user data
       if (account?.provider === 'oidc' && user?.email) {
         const dbUser = await prisma.user.findUnique({
           where: { email: user.email },
@@ -159,13 +180,14 @@ export const authOptions: NextAuthOptions = {
         if (dbUser) {
           token.id = dbUser.id
           token.role = dbUser.role
-          token.totpEnabled = false
+          token.emailNotificationsEnabled = dbUser.emailNotificationsEnabled
+          token.totpEnabled = dbUser.totpEnabled ?? false
         }
       }
 
-      // For credentials users, set TOTP flag
-      if (account?.provider === 'credentials') {
-        token.totpEnabled = user?.totpEnabled ?? false
+      // For credentials users, ensure TOTP flag is set
+      if (account?.provider === 'credentials' && user) {
+        token.totpEnabled = user.totpEnabled ?? false
       }
 
       return token
@@ -175,6 +197,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string
         session.user.role = token.role as string
         session.user.totpEnabled = token.totpEnabled as boolean
+        session.user.emailNotificationsEnabled = token.emailNotificationsEnabled as boolean
       }
       return session
     },
