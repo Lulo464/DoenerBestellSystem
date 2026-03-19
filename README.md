@@ -10,6 +10,8 @@ Ein modernes und vollständiges Bestell- und Verwaltungssystem für Restaurants 
 - 🔐 **Sichere Authentifizierung** mit NextAuth, optionaler 2FA (TOTP) und **OIDC/SSO** (Keycloak, Authentik, Okta, etc.)
 - 📋 **Bestellverwaltung** - Verfolgung von Bestellstatus
 - 🎯 **Produktoptionen** - Flexible Anpassung (Fleisch, Soße, Extras, etc.)
+- ⚙️ **Profilverwaltung** - Bearbeitung von Name, E-Mail und Passwort in den Einstellungen
+- 🔔 **Benachrichtigungseinstellungen** - Kontrolle über E-Mail-Benachrichtigungen
 
 ### Für Administratoren
 - 👥 **Benutzerverwaltung** mit rollenbasiertem Zugriff (RBAC)
