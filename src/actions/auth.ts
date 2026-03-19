@@ -146,11 +146,13 @@ export async function changePassword(currentPassword: string, newPassword: strin
   }
   
   const hashedPassword = await bcrypt.hash(newPassword, 12)
-  
+
   await prisma.user.update({
     where: { id: user.id },
     data: { password: hashedPassword },
   })
-  
+
+  revalidatePath('/settings')
+
   return { success: true, message: 'Passwort erfolgreich geändert' }
 }

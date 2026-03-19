@@ -163,6 +163,8 @@ export const authOptions: NextAuthOptions = {
             where: { id: token.id as string },
           })
           if (dbUser) {
+            token.name = dbUser.name
+            token.email = dbUser.email
             token.emailNotificationsEnabled = dbUser.emailNotificationsEnabled
             token.role = dbUser.role
             token.totpEnabled = dbUser.totpEnabled
@@ -195,6 +197,8 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
+        session.user.name = token.name as string
+        session.user.email = token.email as string
         session.user.role = token.role as string
         session.user.totpEnabled = token.totpEnabled as boolean
         session.user.emailNotificationsEnabled = token.emailNotificationsEnabled as boolean

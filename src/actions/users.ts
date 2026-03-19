@@ -185,18 +185,24 @@ export async function updateUser(userId: string, data: {
   }
   
   const updateData: any = {}
-  
-  if (data.name) updateData.name = data.name.trim()
-  if (data.email) updateData.email = data.email.toLowerCase().trim()
+
+  if (data.name !== undefined) updateData.name = data.name.trim()
+  if (data.email !== undefined) updateData.email = data.email.toLowerCase().trim()
   if (data.role !== undefined) updateData.role = data.role
-  
+
+  // Don't update if no data was provided
+  if (Object.keys(updateData).length === 0) {
+    return { success: true, message: 'Keine Änderungen' }
+  }
+
   await prisma.user.update({
     where: { id: userId },
     data: updateData,
   })
-  
+
   revalidatePath('/admin/users')
-  
+  revalidatePath('/settings')
+
   return { success: true, message: 'Benutzer aktualisiert' }
 }
 
